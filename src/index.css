@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+@theme{
+    --font-family-serif: "TNR","Playfair Display", serif;
+}
+
+body {
+  font-family: var(--font-family-sans);
+}

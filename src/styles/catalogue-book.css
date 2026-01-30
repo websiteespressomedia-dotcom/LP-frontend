@@ -1,0 +1,87 @@
+/* ================================
+   Catalogue Book Hover Animation
+   ================================ */
+
+.catalogue-item {
+  perspective: 1600px;
+}
+
+.book-wrapper {
+  position: relative;
+  width: 50%;
+  height: 27vh;
+  /* transform: rotateY(-30deg); */
+  transform-style: preserve-3d;
+}
+
+.book-page,
+.book-cover {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  transform-style: preserve-3d;
+}
+
+.page-1 { z-index: 6;  }
+.page-2 { z-index: 5; height: 97%; margin-top: 2%; }
+.page-3 { z-index: 4;  height: 97%;  margin-top: 2%; }
+.page-4 { z-index: 3; height: 97%;  margin-top: 2%; }
+.page-5 { z-index: 2;  height: 97%; margin-top: 2%; }
+.page-6 { z-index: 1; }
+
+.book-page img,
+.book-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ================= PREVIEW BUTTONS ================= */
+
+.preview-page {
+  overflow: hidden;
+}
+
+/* Overlay layer */
+.preview-actions {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+
+  /* background: rgba(0, 0, 0, 0.35); */
+
+  opacity: 1 !important;              /* GSAP will control this later */
+  pointer-events: auto !important;    /* enabled later */
+  z-index: 10;
+}
+
+/* Base button */
+.preview-btn {
+  padding: 12px 26px;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-family: inherit;
+
+  background: #000;
+  color: #ffffff;
+  border: none;
+  cursor: pointer;
+
+  transition: transform 0.2s ease;
+}
+
+.preview-btn:hover {
+  transform: translateY(-1px);
+}
+
+/* Outline button */
+.preview-btn-outline {
+  background: transparent;
+  color: #000;
+  border: 1px solid #000;
+}

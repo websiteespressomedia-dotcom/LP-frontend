@@ -9,6 +9,8 @@ import Footer from "./components/common/Footer";
 import ScrollToTop from "./components/common/ScrollToTop";
 import SmoothScroll from "./components/common/SmoothScroll";
 import CustomCursor from "./components/common/CustomCursor";
+import Catalogue from "./pages/Catalogue";
+import CatalogueViewerPage from "./components/catalogue/CatalogueViewerPage";
 
 const App = () => {
   return (
@@ -22,6 +24,8 @@ const App = () => {
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/collections" element={<Collections />} />
+          <Route path="/catalogue" element={<Catalogue />} />
+          <Route path="/catalogue/viewer" element={<CatalogueViewerPage />} />
           <Route path="/contact" element={<Contact />} />
         </Routes>
         {/* <Footer /> */}

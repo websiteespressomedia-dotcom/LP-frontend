@@ -9,6 +9,7 @@ import tile2 from "../assets/catalogue/tile2.jpg";
 import tile3 from "../assets/catalogue/tile3.avif";
 import tile4 from "../assets/catalogue/tile4.avif";
 import whitebg from "../assets/catalogue/white-bg.avif";
+import halfHero from "../assets/about/44.jpg"
 
 const catalogues = [
   { id: 1, name: "Midnight Marble", image: tile1 },
@@ -114,23 +115,38 @@ const Catalogue = () => {
   }, []);
 
   return (
-    <main className="bg-white text-black">
-      {/* ================= HERO ================= */}
-      <section className="h-[60vh] flex items-center">
-        <div className="max-w-7xl mx-auto px-6">
-          <h1 className="text-5xl md:text-7xl font-serif font-normal mb-6">
-            Catalogue
-          </h1>
+    <main className="">
+      {/* ================= FIXED HERO BACKGROUND (50vh) ================= */}
+<section className="relative h-[50vh] overflow-hidden">
+  {/* FIXED IMAGE */}
+  <div className="fixed blur-xs top-0 left-0 w-full h-[50vh] -z-10">
+    <img
+      src={halfHero}
+      alt="Catalogue Background"
+      className="w-full h-full object-cover"
+    />
+    {/* overlay for readability */}
+    {/* <div className="absolute inset-0 bg-white/70" /> */}
+  </div>
 
-          <p className="max-w-xl text-gray-600 leading-relaxed">
-            A curated collection of architectural surfaces designed for
-            residential, commercial, and bespoke spaces.
-          </p>
-        </div>
-      </section>
+  {/* HERO CONTENT */}
+  <div className="relative h-full flex items-center">
+    <div className="max-w-7xl mx-auto px-6">
+      <h1 className="text-5xl text-white text-center md:text-7xl font-serif font-normal mb-6">
+        Catalogue
+      </h1>
+
+      <p className="max-w-5xl text-white text-shadow-lg/30 text-xl leading-relaxed">
+        A curated collection of architectural surfaces designed for
+        residential, commercial, and bespoke spaces.
+      </p>
+    </div>
+  </div>
+</section>
+
 
       {/* ================= GRID ================= */}
-      <section className="pb-40">
+      <section className="relative pt-[10vh] bg-white pb-40">
         <div className="max-w-7xl mx-auto px-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3  gap-y-24">
             {catalogues.map((item) => (

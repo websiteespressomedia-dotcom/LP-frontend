@@ -15,35 +15,30 @@ const categories = [
 
 const sizes = [
   {
-    label: "300 × 300 mm",
-    w: 60,
-    h: 60,
-    image: tile,
-  },
-  {
-    label: "300 × 450 mm",
+    label: "400 × 400 mm",
     w: 80,
-    h: 120,
+    h: 80,
     image: tile,
   },
   {
-    label: "600 × 600 mm",
-    w: 140,
-    h: 150,
+    label: "500 × 500 mm",
+    w: 100,
+    h: 100,
     image: tile,
   },
   {
-    label: "800 × 1600 mm",
-    w: 180,
+    label: "800 × 2400 mm",
+    w: 130,
     h: 300,
     image: tile,
   },
   {
-    label: "1200 × 1800 mm",
-    w: 250,
-    h: 350,
+    label: "1200 × 4800 mm",
+    w: 150,
+    h: 400,
     image: tile,
   },
+  
 ];
 
 const CategoryStrip = () => {
@@ -198,7 +193,7 @@ const CategoryStrip = () => {
           </p>
 
           {/* SIZE GRID */}
-          <div className="mt-20 flex justify-center items-end gap-12 flex-wrap">
+          <div className="mt-20 flex justify-center items-end gap-30 flex-wrap">
             {sizes.map((size, i) => (
               <div key={i} className="flex flex-col items-center gap-4">
                 {/* SIZE TILE */}

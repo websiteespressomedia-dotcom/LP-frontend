@@ -1,27 +1,43 @@
 import Footer from "../components/common/Footer";
 
+// IMAGES
+import contactBg from "../assets/collections/1.jpg";
+import contactImg1 from "../assets/collections/designer.jpg";
+import contactImg2 from "../assets/collections/carbon.jpg";
+
 const Contact = () => {
   return (
-    <main className="pt-16">
-      
-      {/* PAGE HERO */}
-      <section className="bg-gray-900 text-white py-24">
-        <div className="max-w-7xl mx-auto px-6">
-          <h1 className="text-4xl md:text-5xl font-semibold">
-            Contact Us
-          </h1>
-          <p className="mt-6 max-w-2xl text-gray-300 leading-relaxed">
-            Have a question, project inquiry, or want to explore our collections?
-            Our team is here to help.
-          </p>
+    <main className="relative overflow-hidden">
+      {/* ================= FIXED HERO (50vh) ================= */}
+      <section className="relative h-[50vh] overflow-hidden">
+        {/* FIXED BACKGROUND */}
+        <div className="fixed blur-xs top-0 left-0 w-full h-[50vh] -z-10">
+          <img
+            src={contactBg}
+            alt="Contact Background"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-black/40" />
+        </div>
+
+        {/* HERO CONTENT */}
+        <div className="relative h-full flex items-center">
+          <div className="max-w-7xl mx-auto px-6 text-white">
+            <h1 className="text-4xl md:text-6xl text-center font-semibold">
+              Contact Us
+            </h1>
+            <p className="mt-6 max-w-7xl text-white text-shadow-lg/30 text-xl leading-relaxed">
+              Have a question, project inquiry, or want to explore our
+              collections? Our team is here to help.
+            </p>
+          </div>
         </div>
       </section>
 
-      {/* CONTACT CONTENT */}
-      <section className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-16">
-          
-          {/* LEFT INFO */}
+      {/* ================= CONTACT SECTION ================= */}
+      <section className="relative bg-white pt-[12vh] pb-32">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-2 gap-20">
+          {/* LEFT – FORM */}
           <div>
             <h2 className="text-3xl font-semibold text-gray-900">
               Get in Touch
@@ -32,81 +48,83 @@ const Contact = () => {
               We’ll respond as quickly as possible.
             </p>
 
-            <div className="mt-10 space-y-4 text-sm text-gray-700">
-              <p>
-                <span className="font-medium">Address:</span><br />
-                Morbi, Gujarat, India
-              </p>
-              <p>
-                <span className="font-medium">Phone:</span><br />
-                +91 98765 43210
-              </p>
-              <p>
-                <span className="font-medium">Email:</span><br />
-                info@tilestudio.com
-              </p>
-            </div>
-          </div>
+            <form className="mt-10 space-y-6">
+              <input
+                type="text"
+                placeholder="Full Name"
+                className="w-full border-b border-gray-300 py-2 text-sm focus:outline-none focus:border-black"
+              />
 
-          {/* FORM */}
-          <div className="bg-gray-50 rounded-2xl p-8 border border-gray-200">
-            <form className="space-y-6">
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Name
-                </label>
-                <input
-                  type="text"
-                  placeholder="Your full name"
-                  className="w-full rounded-md border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-                />
-              </div>
+              <input
+                type="email"
+                placeholder="Email Address"
+                className="w-full border-b border-gray-300 py-2 text-sm focus:outline-none focus:border-black"
+              />
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  placeholder="you@example.com"
-                  className="w-full rounded-md border border-gray-300 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-                />
-              </div>
+              <input
+                type="tel"
+                placeholder="Contact Number"
+                className="w-full border-b border-gray-300 py-2 text-sm focus:outline-none focus:border-black"
+              />
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Message
-                </label>
-                <textarea
-                  rows="5"
-                  placeholder="Tell us about your requirements"
-                  className="w-full rounded-md border border-gray-300 px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-gray-900"
-                />
-              </div>
+              <input
+                type="text"
+                placeholder="Address"
+                className="w-full border-b border-gray-300 py-2 text-sm focus:outline-none focus:border-black"
+              />
+
+              <textarea
+                rows="2"
+                placeholder="What are you looking for?"
+                className="w-full border-b border-gray-300 py-2 text-sm resize-none focus:outline-none focus:border-black"
+              />
 
               <button
                 type="submit"
-                className="w-full bg-gray-900 text-white py-3 rounded-md text-sm font-medium hover:bg-gray-800 transition"
+                className="mt-6 inline-flex items-center justify-center px-8 py-3 bg-black text-white text-sm font-medium rounded-full hover:bg-gray-800 transition"
               >
-                Send Message
+                Submit Inquiry
               </button>
-
             </form>
           </div>
 
-        </div>
-      </section>
+          {/* RIGHT – PORTRAIT IMAGES */}
+          <div className="relative flex justify-center gap-8">
+            <div className="w-[260px] h-[500px] rounded-2xl overflow-hidden shadow-2xl -translate-y-8">
+              <img
+                src={contactImg1}
+                alt="Showroom"
+                className="w-full h-full object-cover"
+              />
+            </div>
 
-      {/* MAP PLACEHOLDER */}
-      <section className="bg-gray-100">
-        <div className="max-w-7xl mx-auto px-6 py-16">
-          <div className="h-[320px] rounded-xl bg-gray-300 flex items-center justify-center text-gray-600 text-sm">
-            Map integration (Google Maps / iframe)
+            <div className="w-[260px] h-[500px] rounded-2xl overflow-hidden shadow-2xl translate-y-16">
+              <img
+                src={contactImg2}
+                alt="Tiles Display"
+                className="w-full h-full object-cover"
+              />
+            </div>
           </div>
         </div>
       </section>
-<Footer/>
+
+      {/* ================= MAP ================= */}
+      <section className="bg-gray-100">
+        <div className="max-w-7xl mx-auto px-6 py-20">
+          <div className="h-[360px] rounded-2xl overflow-hidden shadow-lg">
+            {/* Replace iframe src with real Google Maps */}
+            <iframe
+              title="Google Map"
+              src="https://maps.google.com/maps?q=Morbi%20Gujarat&t=&z=13&ie=UTF8&iwloc=&output=embed"
+              className="w-full h-full border-0"
+              loading="lazy"
+            />
+          </div>
+        </div>
+      </section>
+
+      <Footer />
     </main>
   );
 };

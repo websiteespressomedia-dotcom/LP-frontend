@@ -2,10 +2,51 @@ import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import pdfjsLib from "../../pdfWorker";
 import CatalogueControls from "./CatalogueControls";
+import CatalogueThumbnailsPanel from "./CatalogueThumbnailsPanel";
+import { RxCross2 } from "react-icons/rx";
 
 const PDF_URL = "/pdfs/lp-cat_repaired.pdf";
 
 const CatalogueViewerPage = () => {
+  const pageCache = useRef(new Map());
+  const [prepProgress, setPrepProgress] = useState(0);
+  const renderPageToCache = async (page, scale = 1) => {
+    const viewport = page.getViewport({ scale });
+
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d", { alpha: true });
+
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    await page.render({
+      canvasContext: ctx,
+      viewport,
+    }).promise;
+
+    return canvas;
+  };
+
+  const preRenderAllPages = async (doc) => {
+    const CACHE_SCALE = 1; // 👈 balance quality vs memory
+
+    for (let i = 1; i <= doc.numPages; i++) {
+      const page = await doc.getPage(i);
+
+      const bitmap = await renderPageToCache(page, CACHE_SCALE);
+
+      pageCache.current.set(i, bitmap);
+
+      setPrepProgress(i);
+
+      // 🔥 yield to browser (prevents freeze)
+      await new Promise((r) => requestAnimationFrame(r));
+    }
+  };
+
   const leftCanvasRef = useRef(null);
   const rightCanvasRef = useRef(null);
 
@@ -24,23 +65,99 @@ const CatalogueViewerPage = () => {
 
   const toMB = (b) => (b / (1024 * 1024)).toFixed(1);
 
+  // CONTROLS USESTATES
+  const [scaleMultiplier, setScaleMultiplier] = useState(1);
+  const [showThumbnails, setShowThumbnails] = useState(false);
+
+  const downloadPDF = async (url, onProgress) => {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Failed to fetch PDF");
+
+    const total = Number(res.headers.get("Content-Length"));
+    let loaded = 0;
+
+    const reader = res.body.getReader();
+    const chunks = [];
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      chunks.push(value);
+      loaded += value.length;
+
+      onProgress(loaded, total);
+    }
+
+    // Merge chunks
+    const pdfBytes = new Uint8Array(loaded);
+    let offset = 0;
+
+    for (const chunk of chunks) {
+      pdfBytes.set(chunk, offset);
+      offset += chunk.length;
+    }
+
+    return pdfBytes;
+  };
+
   /* ================= LOAD PDF ================= */
   useEffect(() => {
-    const task = pdfjsLib.getDocument({
-      url: PDF_URL,
-      onProgress: ({ loaded, total }) => {
-        if (total) {
-          setLoadedMB(toMB(loaded));
-          setTotalMB(toMB(total));
-        }
-      },
-    });
+    let cancelled = false;
 
-    task.promise.then((doc) => {
-      setPdf(doc);
-      setTotalPages(doc.numPages);
-      setTimeout(() => setReady(true), 300);
-    });
+    const loadPDF = async () => {
+      try {
+        const pdfBytes = await downloadPDF(PDF_URL, (loaded, total) => {
+          if (cancelled || !total) return;
+
+          setLoadedMB((loaded / 1024 / 1024).toFixed(1));
+          setTotalMB((total / 1024 / 1024).toFixed(1));
+        });
+
+        if (cancelled) return;
+
+        const loadingTask = pdfjsLib.getDocument({ data: pdfBytes });
+        const doc = await loadingTask.promise;
+
+        if (cancelled) return;
+
+        setPdf(doc);
+        setTotalPages(doc.numPages);
+
+        // 🔥 STAGE 1: WARM UP pdf.js (page 1 ONLY)
+        const warmPage = await doc.getPage(1);
+        await renderPageToCache(warmPage, 1);
+        pageCache.current.set(1, warmPage);
+
+        // Allow UI to update
+        await new Promise((r) => setTimeout(r, 50));
+
+        // 🔥 STAGE 2: REAL PROGRESS RENDER
+        for (let i = 2; i <= doc.numPages; i++) {
+          const page = await doc.getPage(i);
+          const bitmap = await renderPageToCache(page, 1);
+          pageCache.current.set(i, bitmap);
+
+          setPrepProgress(i);
+
+          // Yield so loader updates smoothly
+          await new Promise((r) => setTimeout(r, 16));
+        }
+
+        setReady(true);
+
+        if (cancelled) return;
+        setReady(true); // ✅ hides loader
+      } catch (err) {
+        console.error("PDF load failed", err);
+      }
+    };
+
+    loadPDF();
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   /* ================= RENDER PAGE PAIR ================= */
@@ -72,10 +189,21 @@ const CatalogueViewerPage = () => {
 
       const viewport = page.getViewport({ scale: 1 });
 
-      const scale = Math.min(
-        maxWidth / viewport.width,
-        maxHeight / viewport.height,
-      );
+      const scale =
+        Math.min(maxWidth / viewport.width, maxHeight / viewport.height) *
+        scaleMultiplier;
+
+      const zoomIn = () => setScaleMultiplier((s) => Math.min(s + 0.1, 2));
+
+      const zoomOut = () => setScaleMultiplier((s) => Math.max(s - 0.1, 0.6));
+
+      const toggleFullscreen = () => {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen();
+        } else {
+          document.exitFullscreen();
+        }
+      };
 
       const scaledViewport = page.getViewport({ scale });
 
@@ -132,6 +260,44 @@ const CatalogueViewerPage = () => {
     }
   };
 
+  useEffect(() => {
+    const handleKey = (e) => {
+      // Prevent conflict when typing in input
+      if (
+        document.activeElement &&
+        document.activeElement.tagName === "INPUT"
+      ) {
+        return;
+      }
+
+      if (e.key === "ArrowRight") {
+        next();
+      }
+
+      if (e.key === "ArrowLeft") {
+        prev();
+      }
+    };
+
+    window.addEventListener("keydown", handleKey);
+
+    return () => {
+      window.removeEventListener("keydown", handleKey);
+    };
+  }, [next, prev]);
+
+  const jumpToPage = (page) => {
+    if (page < 1 || page > totalPages) return;
+
+    if (page === 1) {
+      setPageIndex(1);
+      return;
+    }
+
+    // make it spread-safe (even page)
+    setPageIndex(page % 2 === 0 ? page : page - 1);
+  };
+
   return (
     <div className="fixed inset-0 top-16 bg-neutral-300 flex flex-col">
       {/* ================= LOADER ================= */}
@@ -141,6 +307,11 @@ const CatalogueViewerPage = () => {
           <p className="text-lg">
             {loadedMB} / {totalMB} MB
           </p>
+          <p className="text-sm text-center">
+            Please wait... <br />
+            Preparing pages {prepProgress} / {totalPages}
+          </p>
+
           <div className="w-64 h-[2px] bg-neutral-300 mt-4">
             <div
               className="h-full bg-black transition-all"
@@ -153,11 +324,11 @@ const CatalogueViewerPage = () => {
       )}
 
       {/* ================= TOP BAR ================= */}
-      <div className="h-12 bg-neutral-200 flex items-center justify-between px-4 text-xs">
-        <span>
+      <div className="h-12 flex items-center justify-end px-4 text-lg">
+        {/* <span>
           {pageIndex} – {Math.min(pageIndex + 1, totalPages)} / {totalPages}
-        </span>
-        <button onClick={() => window.close()}>✕</button>
+        </span> */}
+        <button onClick={() => window.close()}><RxCross2 className="text-black text-3xl cursor-pointer"/></button>
       </div>
 
       {/* ================= BOOK VIEW ================= */}
@@ -168,9 +339,9 @@ const CatalogueViewerPage = () => {
         {/* PREV */}
         <button
           onClick={prev}
-          className="absolute left-6 text-5xl text-black/50 hover:text-black"
+          className="absolute left-6 bottom-1/2 text-7xl text-black/50 hover:text-black"
         >
-          ‹
+          
         </button>
 
         {/* BOOK */}
@@ -203,12 +374,30 @@ const CatalogueViewerPage = () => {
         {/* NEXT */}
         <button
           onClick={next}
-          className="absolute right-6 text-5xl text-black/50 hover:text-black"
+          className="absolute right-6 bottom-1/2 text-7xl text-black/50 hover:text-black"
         >
           ›
         </button>
       </div>
-      <CatalogueControls />
+      <CatalogueControls
+        pageIndex={pageIndex}
+        totalPages={totalPages}
+        onJumpToPage={jumpToPage}
+        onNext={next}
+        onPrev={prev}
+        onToggleGrid={() => setShowThumbnails((v) => !v)}
+      />
+
+      <CatalogueThumbnailsPanel
+        pdf={pdf}
+        totalPages={totalPages}
+        currentPage={pageIndex}
+        isOpen={showThumbnails}
+        onSelectPage={(p) => {
+          jumpToPage(p);
+        }}
+        onClose={() => setShowThumbnails(false)}
+      />
     </div>
   );
 };

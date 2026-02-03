@@ -1,15 +1,18 @@
 import { useEffect, useRef, useState } from "react";
-import { motion } from "framer-motion";
+import gsap from "gsap";
 import pdfjsLib from "../../pdfWorker";
 import CatalogueControls from "./CatalogueControls";
 import CatalogueThumbnailsPanel from "./CatalogueThumbnailsPanel";
 import { RxCross2 } from "react-icons/rx";
+import { FaAngleLeft, FaAngleRight } from "react-icons/fa";
 
 const PDF_URL = "/pdfs/lp-cat_repaired.pdf";
 
 const CatalogueViewerPage = () => {
   const pageCache = useRef(new Map());
   const [prepProgress, setPrepProgress] = useState(0);
+  const [viewMode, setViewMode] = useState("spread");
+
   const renderPageToCache = async (page, scale = 1) => {
     const viewport = page.getViewport({ scale });
 
@@ -30,25 +33,9 @@ const CatalogueViewerPage = () => {
     return canvas;
   };
 
-  const preRenderAllPages = async (doc) => {
-    const CACHE_SCALE = 1; // 👈 balance quality vs memory
-
-    for (let i = 1; i <= doc.numPages; i++) {
-      const page = await doc.getPage(i);
-
-      const bitmap = await renderPageToCache(page, CACHE_SCALE);
-
-      pageCache.current.set(i, bitmap);
-
-      setPrepProgress(i);
-
-      // 🔥 yield to browser (prevents freeze)
-      await new Promise((r) => requestAnimationFrame(r));
-    }
-  };
-
   const leftCanvasRef = useRef(null);
   const rightCanvasRef = useRef(null);
+  const rightPageWrapperRef = useRef(null);
 
   const leftRenderTask = useRef(null);
   const rightRenderTask = useRef(null);
@@ -159,6 +146,7 @@ const CatalogueViewerPage = () => {
       cancelled = true;
     };
   }, []);
+  const hasRightPage = viewMode === "spread" && pageIndex + 1 <= totalPages;
 
   /* ================= RENDER PAGE PAIR ================= */
   useEffect(() => {
@@ -193,18 +181,6 @@ const CatalogueViewerPage = () => {
         Math.min(maxWidth / viewport.width, maxHeight / viewport.height) *
         scaleMultiplier;
 
-      const zoomIn = () => setScaleMultiplier((s) => Math.min(s + 0.1, 2));
-
-      const zoomOut = () => setScaleMultiplier((s) => Math.max(s - 0.1, 0.6));
-
-      const toggleFullscreen = () => {
-        if (!document.fullscreenElement) {
-          document.documentElement.requestFullscreen();
-        } else {
-          document.exitFullscreen();
-        }
-      };
-
       const scaledViewport = page.getViewport({ scale });
 
       const canvas = canvasRef.current;
@@ -219,45 +195,105 @@ const CatalogueViewerPage = () => {
       });
     };
 
-    // COVER PAGE (single)
-    if (pageIndex === 1) {
-      renderPage(1, leftCanvasRef, leftRenderTask, 0.6);
+    // SINGLE PAGE MODE
+    if (viewMode === "single") {
+      renderPage(pageIndex, leftCanvasRef, leftRenderTask, 0.6);
       return;
     }
 
-    // SPREAD PAGES
+    // SPREAD MODE
+    // spread mode
     renderPage(pageIndex, leftCanvasRef, leftRenderTask, 0.45);
 
     if (pageIndex + 1 <= totalPages) {
       renderPage(pageIndex + 1, rightCanvasRef, rightRenderTask, 0.45);
     }
-  }, [pdf, pageIndex, ready, totalPages]);
+
+    renderPage(pageIndex, leftCanvasRef, leftRenderTask, 0.45);
+
+    if (hasRightPage) {
+      renderPage(pageIndex + 1, rightCanvasRef, rightRenderTask, 0.45);
+    }
+  }, [pdf, pageIndex, ready, totalPages, viewMode]);
+
+  useEffect(() => {
+    if (viewMode === "single" && rightCanvasRef.current) {
+      const ctx = rightCanvasRef.current.getContext("2d");
+      ctx &&
+        ctx.clearRect(
+          0,
+          0,
+          rightCanvasRef.current.width,
+          rightCanvasRef.current.height,
+        );
+    }
+  }, [viewMode]);
+
+  useEffect(() => {
+    if (viewMode !== "spread") return;
+
+    setPageIndex((p) => {
+      // page 1 is allowed
+      if (p === 1) return 1;
+
+      // force LEFT page
+      return p % 2 === 0 ? p - 1 : p;
+    });
+  }, [viewMode]);
+
+  const animatePageFlipNext = (onComplete) => {
+    const page = rightPageWrapperRef.current;
+    if (!page) return;
+
+    gsap.killTweensOf(page);
+
+    // reset
+    gsap.set(page, {
+      transformOrigin: "center center",
+      rotationY: 0,
+      x: 0,
+      zIndex: 20,
+    });
+
+    gsap.to(page, {
+      rotationY: -180,
+      x: "-100%", // 👈 THIS makes it land on left page
+      duration: 0.9,
+      ease: "power2.inOut",
+      onComplete,
+    });
+  };
 
   /* ================= NAV ================= */
   const next = () => {
-    if (pageIndex === 1) {
-      setDirection("next");
-      setPageIndex(2);
-      return;
-    }
+    setDirection("next");
 
-    if (pageIndex + 2 <= totalPages) {
-      setDirection("next");
-      setPageIndex((p) => p + 2);
-    }
+    setPageIndex((p) => {
+      if (viewMode === "single") {
+        return Math.min(p + 1, totalPages);
+      }
+
+      // spread mode
+      if (p === 1) return 3;
+
+      const nextPage = p + 2;
+      return nextPage <= totalPages ? nextPage : p;
+    });
   };
 
   const prev = () => {
-    if (pageIndex === 2) {
-      setDirection("prev");
-      setPageIndex(1);
-      return;
-    }
+    setDirection("prev");
 
-    if (pageIndex - 2 >= 1) {
-      setDirection("prev");
-      setPageIndex((p) => p - 2);
-    }
+    setPageIndex((p) => {
+      if (viewMode === "single") {
+        return Math.max(p - 1, 1);
+      }
+
+      // spread mode
+      if (p <= 3) return 1;
+
+      return p - 2;
+    });
   };
 
   useEffect(() => {
@@ -328,7 +364,9 @@ const CatalogueViewerPage = () => {
         {/* <span>
           {pageIndex} – {Math.min(pageIndex + 1, totalPages)} / {totalPages}
         </span> */}
-        <button onClick={() => window.close()}><RxCross2 className="text-black text-3xl cursor-pointer"/></button>
+        <button onClick={() => window.close()}>
+          <RxCross2 className="text-black text-3xl cursor-pointer" />
+        </button>
       </div>
 
       {/* ================= BOOK VIEW ================= */}
@@ -339,44 +377,37 @@ const CatalogueViewerPage = () => {
         {/* PREV */}
         <button
           onClick={prev}
-          className="absolute left-6 bottom-1/2 text-7xl text-black/50 hover:text-black"
+          className="absolute left-6 bottom-1/2 text-[40px] text-black/50 hover:text-black"
         >
-          
+          <FaAngleLeft />
         </button>
 
         {/* BOOK */}
-        {pageIndex === 1 ? (
-          /* COVER */
+        {viewMode === "single" ? (
           <canvas ref={leftCanvasRef} className="bg-white shadow-2xl" />
         ) : (
-          /* SPREAD */
-          <div className="relative flex gap-4">
-            <canvas ref={leftCanvasRef} className="bg-white shadow-2xl" />
+          <div className="relative flex gap-1">
+    {/* LEFT PAGE (always exists) */}
+    <canvas
+      ref={leftCanvasRef}
+      className="bg-white shadow-2xl"
+    />
 
-            <motion.div
-              key={pageIndex}
-              initial={{
-                rotateY: direction === "next" ? 90 : -90,
-              }}
-              animate={{ rotateY: 0 }}
-              transition={{ duration: 0.45, ease: "easeOut" }}
-              style={{
-                transformOrigin:
-                  direction === "next" ? "left center" : "right center",
-              }}
-              className="bg-white shadow-2xl"
-            >
-              <canvas ref={rightCanvasRef} />
-            </motion.div>
-          </div>
+    {/* RIGHT PAGE (ONLY if it exists) */}
+    {hasRightPage && (
+      <div className="relative bg-white shadow-2xl">
+        <canvas ref={rightCanvasRef} />
+      </div>
+    )}
+  </div>
         )}
 
         {/* NEXT */}
         <button
           onClick={next}
-          className="absolute right-6 bottom-1/2 text-7xl text-black/50 hover:text-black"
+          className="absolute right-6 bottom-1/2 text-[40px] text-black/50 hover:text-black"
         >
-          ›
+          <FaAngleRight />
         </button>
       </div>
       <CatalogueControls
@@ -386,6 +417,10 @@ const CatalogueViewerPage = () => {
         onNext={next}
         onPrev={prev}
         onToggleGrid={() => setShowThumbnails((v) => !v)}
+        viewMode={viewMode}
+        onToggleViewMode={() =>
+          setViewMode((m) => (m === "single" ? "spread" : "single"))
+        }
       />
 
       <CatalogueThumbnailsPanel

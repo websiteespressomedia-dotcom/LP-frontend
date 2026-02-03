@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 
 const Footer = ({ transparent = false }) => {
   return (
-    <footer className={`${transparent ? "bg-transparent backdrop-blur-xs border-t border-white/20 text-white" : "bg-gray-950"} text-gray-300 `}>
+    <footer className={`${transparent ? "bg-transparent backdrop-blur-xs border-t border-white/20 text-white" : " bg-gradient-to-b from-[#2a2a2a] to-[#151515]"} text-gray-300 `}>
       <div className="max-w-7xl mx-auto px-6 py-16">
         
         {/* TOP */}

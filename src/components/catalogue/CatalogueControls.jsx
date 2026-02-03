@@ -5,6 +5,8 @@ const CatalogueControls = ({
   totalPages,
   onJumpToPage,
   onToggleGrid,
+   viewMode,
+  onToggleViewMode,
 }) => {
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(pageIndex);
@@ -68,6 +70,13 @@ const CatalogueControls = ({
         >
           <TfiLayoutGrid2 className="cursor-pointer text-black " />
         </button>
+<button
+  onClick={onToggleViewMode}
+  className="px-3 py-1 text-xs border rounded"
+>
+  {viewMode === "single" ? "Spread View" : "Single Page"}
+</button>
+
 
        
       </div>

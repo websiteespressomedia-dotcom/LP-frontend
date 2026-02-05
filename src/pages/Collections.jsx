@@ -133,198 +133,160 @@ const Collections = () => {
   // }, [filteredCollections]);
 
   return (
-    <section className="relative min-h-screen top-8 overflow-hidden">
+    <section className="fixed min-h-screen inset-0 overflow-hidden">
       {/* ================= FIXED BACKGROUND ================= */}
-      <div className="fixed inset-0 -z-10">
+      <div className="fixed inset-0 -z-10 pointer-events-none">
         <img
           src={collectionsBg}
           alt="Collections Background"
           className="w-full h-full object-cover"
         />
-        <div className="absolute inset-0 bg-black/40" />
+        <div className="absolute inset-0 bg-black/40 pointer-events-none" />
       </div>
 
-      {/* ================= HERO SECTION ================= */}
-      <section className="min-h-screen flex items-center justify-center px-6">
-        <div className="w-full max-w-6xl mx-auto text-center text-white space-y-14 z-10">
-          <h1 className="text-4xl md:text-7xl font-semibold tracking-wide">
-            Collections
-          </h1>
+      {/* ================= PAGE GRID ================= */}
+      
+        {/* ================= LEFT FILTER SIDEBAR ================= */}
+        <aside
+          className="
+          hidden lg:block
+          fixed top-16 h-screen
+          border-r border-white/20
+          bg-black/30
+          backdrop-blur-lg
+          p-8
+          overflow-hidden
+          z-20
+        "
+        >
+          <h2 className="text-white text-xl font-semibold mb-6">Filters</h2>
 
-          <FilterGroup
-            label="Category"
-            options={CATEGORIES}
-            value={category}
-            setValue={setCategory}
-          />
-
-          {/* SIZE / SERIES / FINISH – 3 COLUMN LAYOUT */}
-          {/* ================= FILTER PANEL ================= */}
-          <div className="mt-8 max-w-7xl mx-auto">
-            <div
-              className="
-                relative
-                rounded-[32px]
-                border border-white/20
-                bg-black/30
-                backdrop-blur-xs
-                p-12
-              "
-            >
-              <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr_auto_2fr] gap-12 items-start">
-                {/* ================= LEFT: SIZE ================= */}
-                <div className="space-y-6">
-                  <h3 className="text-lg font-medium text-white">
-                    Choose By Size
-                  </h3>
-                  <div className="h-px bg-white/20" />
-
-                  <div className="grid grid-cols-1 gap-4">
-                    {SIZE_OPTIONS.map((opt) => (
-                      <button
-                        key={opt}
-                        onClick={() => setSize(opt)}
-                        className={`
-                 py-3 mx-8 rounded-xl text-sm font-medium transition-all
+          {/* SIZE */}
+          <div className="space-y-5 mb-6">
+            <h3 className="text-white text-lg">Size</h3>
+            <div className="grid grid-cols-2 gap-3">
+              {SIZE_OPTIONS.map((opt) => (
+                <button
+                  key={opt}
+                  onClick={() => setSize(opt)}
+                  className={`
+                w-full py-3 rounded-xl text-sm font-medium transition
                 ${
                   size === opt
                     ? "bg-white text-black shadow-lg"
                     : "bg-black/20 text-white border border-white/20 hover:border-white/40"
                 }
               `}
-                      >
-                        {opt === "All"
-                          ? "ALL"
-                          : `${opt.replace("x", " x ")} MM`}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                >
+                  {opt === "All" ? "ALL" : opt.replace("x", " x ") + " MM"}
+                </button>
+              ))}
+            </div>
+          </div>
 
-                {/* DIVIDER */}
-                <div className="hidden md:block w-px bg-white/20 h-full" />
-
-                {/* ================= CENTER: SERIES ================= */}
-                <div className="space-y-6">
-                  <h3 className="text-lg font-medium text-white">
-                    Choose By Series
-                  </h3>
-                  <div className="h-px bg-white/20" />
-
-                  <div className="grid grid-cols-1 gap-4">
-                    {SERIES_OPTIONS.map((opt) => (
-                      <button
-                        key={opt}
-                        onClick={() => setSeries(opt)}
-                        className={`
-                py-3 rounded-xl mx-8 text-sm font-medium transition-all
+          {/* SERIES */}
+          <div className="space-y-5 mb-6">
+            <h3 className="text-white text-lg">Series</h3>
+            <div className="grid grid-cols-2 gap-3">
+              {SERIES_OPTIONS.map((opt) => (
+                <button
+                  key={opt}
+                  onClick={() => setSeries(opt)}
+                  className={`
+                w-full py-3 rounded-xl text-sm font-medium transition
                 ${
                   series === opt
                     ? "bg-white text-black shadow-lg"
                     : "bg-black/20 text-white border border-white/20 hover:border-white/40"
                 }
               `}
-                      >
-                        {opt.toUpperCase()}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* DIVIDER */}
-                <div className="hidden md:block w-px bg-white/20 h-full" />
-
-                {/* ================= RIGHT: FINISH ================= */}
-                <div className="space-y-6">
-                  <h3 className="text-lg font-medium text-white">
-                    Choose By Finish
-                  </h3>
-                  <div className="h-px bg-white/20" />
-
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {FINISH_OPTIONS.map((opt) => (
-                      <button
-                        key={opt}
-                        onClick={() => setFinish(opt)}
-                        className={`
-                px-2 py-3 rounded-xl text-xs font-medium uppercase tracking-wide
-                transition-all
-                ${
-                  finish === opt
-                    ? "bg-white text-black shadow-lg"
-                    : "bg-black/20 text-white border border-white/20 hover:border-white/40"
-                }
-              `}
-                      >
-                        {opt}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
+                >
+                  {opt.toUpperCase()}
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* <button
-            onClick={() =>
-              document
-                .getElementById("collections-results")
-                ?.scrollIntoView({ behavior: "smooth" })
-            }
-            className="px-10 py-4 bg-white text-black rounded-full font-medium tracking-wide hover:bg-gray-200 transition"
-          >
-            View Collections
-          </button> */}
-        </div>
-      </section>
-
-      {/* ================= RESULTS SECTION ================= */}
-      <section id="collections-results" className="relative px-6 py-24">
-        <div
-          className="
-    absolute inset-0
-    bg-white/20
-    backdrop-blur-lg
-     border-white/30
-  "
-        />
-        <div className="relative z-10 max-w-7xl mx-auto">
-          {filteredCollections.length === 0 ? (
-            <p className="text-gray-500">No collections found.</p>
-          ) : (
-            <div
-              ref={gridRef}
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-10 gap-y-16"
-            >
-              {filteredCollections.map((item) => (
-                <div
-                  key={item.id}
-                  className="group transition-all duration-500"
+          {/* FINISH */}
+          <div className="space-y-5">
+            <h3 className="text-white text-lg">Finish</h3>
+            <div className="grid grid-cols-2 gap-3">
+              {FINISH_OPTIONS.map((opt) => (
+                <button
+                  key={opt}
+                  onClick={() => setFinish(opt)}
+                  className={`
+                  py-3 rounded-xl text-xs uppercase tracking-wide transition
+                  ${
+                    finish === opt
+                      ? "bg-white text-black shadow-lg"
+                      : "bg-black/20 text-white border border-white/20 hover:border-white/40"
+                  }
+                `}
                 >
-                  <div className="relative overflow-hidden bg-gray-100 aspect-[3/4]">
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition" />
-                    <div className="absolute top-4 left-4 bg-white/90 px-3 py-1 text-xs font-medium">
-                      {item.finish}
-                    </div>
-                  </div>
-
-                  <div className="mt-5 space-y-1">
-                    <h3 className="text-lg font-semibold">{item.name}</h3>
-                    <p className="text-xs uppercase tracking-widest text-white">
-                      {item.size} • {item.series}
-                    </p>
-                  </div>
-                </div>
+                  {opt}
+                </button>
               ))}
             </div>
-          )}
-        </div>
-      </section>
+          </div>
+        </aside>
+
+        {/* ================= RIGHT CONTENT ================= */}
+        <main className="h-screen overflow-y-auto overscroll-contain relative z-10" onWheel={(e) => e.stopPropagation()}>
+          {/* ================= HERO ================= */}
+          <section className="min-h-[60vh] flex items-center justify-center px-6">
+            <div className="max-w-6xl mx-auto text-center text-white space-y-10">
+              <h1 className="text-4xl md:text-7xl font-semibold">
+                Collections
+              </h1>
+
+              <FilterGroup
+                label="Category"
+                options={CATEGORIES}
+                value={category}
+                setValue={setCategory}
+              />
+            </div>
+          </section>
+
+          {/* ================= RESULTS ================= */}
+          <section className="relative px-6">
+            <div className="max-w-7xl ml-[20%]">
+              {filteredCollections.length === 0 ? (
+                <p className="text-white/70">No collections found.</p>
+              ) : (
+                <div
+                  ref={gridRef}
+                  className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-10 gap-y-16"
+                >
+                  {filteredCollections.map((item) => (
+                    <div key={item.id} className="group">
+                      <div className="relative overflow-hidden bg-gray-100 aspect-[3/4]">
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition" />
+                        <div className="absolute top-4 left-4 bg-white/90 px-3 py-1 text-xs font-medium">
+                          {item.finish}
+                        </div>
+                      </div>
+
+                      <div className="mt-5 space-y-1 text-white">
+                        <h3 className="text-lg font-semibold">{item.name}</h3>
+                        <p className="text-xs uppercase tracking-widest opacity-80">
+                          {item.size} • {item.series}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </section>
+        </main>
+     
     </section>
   );
 };

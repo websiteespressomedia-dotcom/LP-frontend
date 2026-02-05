@@ -340,9 +340,9 @@ const CatalogueViewerPage = () => {
       {!ready && (
         <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-neutral-200">
           <p className="mb-2 text-sm">Loading catalogue</p>
-          <p className="text-lg">
+          {/* <p className="text-lg">
             {loadedMB} / {totalMB} MB
-          </p>
+          </p> */}
           <p className="text-sm text-center">
             Please wait... <br />
             Preparing pages {prepProgress} / {totalPages}
@@ -352,7 +352,7 @@ const CatalogueViewerPage = () => {
             <div
               className="h-full bg-black transition-all"
               style={{
-                width: totalMB ? `${(loadedMB / totalMB) * 100}%` : "0%",
+                width: totalMB ? `${(prepProgress / totalPages) * 100}%` : "0%",
               }}
             />
           </div>

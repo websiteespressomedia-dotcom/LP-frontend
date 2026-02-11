@@ -7,3 +7,29 @@
 body {
   font-family: var(--font-family-sans);
 }
+
+/* ===== Luxury Scrollbar ===== */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.45);
+}
+
+/* Firefox */
+* {
+  scrollbar-width:  thin;
+  scrollbar-color: rgba(255,255,255,0.35) transparent;
+}

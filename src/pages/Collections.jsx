@@ -1,49 +1,33 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import gsap from "gsap";
-import { generateTiles } from "../helpers/tileHelper";
+import { generateTiles, getAspectRatioStyle } from "../helpers/tileHelper";
 import { MAIN_CATEGORIES, SIZE_CONFIG } from "../config/tileConfig";
 
 // ---------------- IMAGES ----------------
-import aurora from "../assets/collections/aurora.png";
-import midnight from "../assets/collections/midnight.jpg";
-import stone from "../assets/collections/stone.webp";
-import ivory from "../assets/collections/ivory.avif";
-import carbon from "../assets/collections/carbon.jpg";
-import ash from "../assets/collections/ash.png";
 import collectionsBg from "../assets/collections/large-format.jpg";
-import secondBg from "../assets/about/33.jpg";
 
 const Collections = () => {
   const gridRef = useRef(null);
 
   const [categoryId, setCategoryId] = useState("All");
   const [sizeMm, setSizeMm] = useState(null);
-  const [finish, setFinish] = useState(null);
+  const [finish, setFinish] = useState("All");
 
-  const tiles = useMemo(() => {
+  const baseTiles = useMemo(() => {
     return generateTiles({
       categoryId,
       sizeMm,
-      finish,
     });
-  }, [categoryId, sizeMm, finish]);
+  }, [categoryId, sizeMm]);
 
-  // ---------------- GSAP GRID ANIMATION ----------------
-  // useEffect(() => {
-  //   if (!gridRef.current) return;
+  const availableFinishes = useMemo(() => {
+    const set = new Set(baseTiles.map((t) => t.finish));
+    return ["All", ...Array.from(set)];
+  }, [baseTiles]);
 
-  //   gsap.fromTo(
-  //     gridRef.current.children,
-  //     { opacity: 0, y: 40 },
-  //     {
-  //       opacity: 1,
-  //       y: 0,
-  //       duration: 0.6,
-  //       ease: "power3.out",
-  //       stagger: 0.08,
-  //     },
-  //   );
-  // }, [filteredCollections]);
+  const tiles = useMemo(() => {
+    if (finish === "All") return baseTiles;
+    return baseTiles.filter((t) => t.finish === finish);
+  }, [baseTiles, finish]);
 
   return (
     <section className="fixed min-h-screen inset-0 overflow-hidden">
@@ -112,51 +96,29 @@ const Collections = () => {
           </div>
         </div>
 
-        {/* SERIES */}
-        {/* <div className="space-y-5 mb-6">
-            <h3 className="text-white text-lg">Series</h3>
-            <div className="grid grid-cols-2 gap-3">
-              {SERIES_OPTIONS.map((opt) => (
-                <button
-                  key={opt}
-                  onClick={() => setSeries(opt)}
-                  className={`
-                w-full py-3 rounded-xl text-sm transition
-                ${
-                  series === opt
-                    ? "bg-white text-black shadow-lg"
-                    : "bg-black/20 text-white border border-white/20 hover:border-white/40"
-                }
-              `}
-                >
-                  {opt.toUpperCase()}
-                </button>
-              ))}
-            </div>
-          </div> */}
+        {/* ================= FINISH ================= */}
+        <div className="space-y-5 mt-8">
+          <h3 className="text-white text-lg">Finish</h3>
 
-        {/* FINISH */}
-        {/* <div className="space-y-5">
-            <h3 className="text-white text-lg">Finish</h3>
-            <div className="grid grid-cols-2 gap-3">
-              {FINISH_OPTIONS.map((opt) => (
-                <button
-                  key={opt}
-                  onClick={() => setFinish(opt)}
-                  className={`
-                  py-3 rounded-xl text-xs uppercase tracking-wide transition
-                  ${
-                    finish === opt
-                      ? "bg-white text-black shadow-lg"
-                      : "bg-black/20 text-white border border-white/20 hover:border-white/40"
-                  }
-                `}
-                >
-                  {opt}
-                </button>
-              ))}
-            </div>
-          </div> */}
+          <div className="grid grid-cols-2 gap-3">
+            {availableFinishes.map((opt) => (
+              <button
+                key={opt}
+                onClick={() => setFinish(opt)}
+                className={`
+          py-3 rounded-xl text-xs uppercase tracking-wide transition
+          ${
+            finish === opt
+              ? "bg-white text-black shadow-lg"
+              : "bg-black/20 text-white border border-white/20 hover:border-white/40"
+          }
+        `}
+              >
+                {opt}
+              </button>
+            ))}
+          </div>
+        </div>
       </aside>
 
       {/* ================= RIGHT CONTENT ================= */}
@@ -190,16 +152,19 @@ const Collections = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
                 {tiles.map((tile) => (
                   <div key={tile.id} className="group">
-                    <div className="relative aspect-[3/4] bg-white shadow-xl hover:shadow-2xl transition-all duration-500">
+                    <div
+                      className="relative bg-white shadow-xl hover:shadow-2xl transition-all duration-500"
+                      style={getAspectRatioStyle(tile.sizeMm)}
+                    >
                       <img
                         src={tile.image}
                         alt={tile.name}
                         className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                       />
 
-                      <div className="absolute top-3 left-3 bg-white/90 px-3 py-1 text-xs font-medium">
+                      {/* <div className="absolute top-3 left-3 bg-white/90 px-3 py-1 text-xs font-medium">
                         {tile.sizeMm}
-                      </div>
+                      </div> */}
                     </div>
 
                     <div className="mt-4 text-white">

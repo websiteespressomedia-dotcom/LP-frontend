@@ -1,70 +1,3 @@
-// import { MAIN_CATEGORIES, SIZE_CONFIG } from "../config/tileConfig";
-
-// /* ================= GET SIZES BY CATEGORY ================= */
-
-// export const getSizesByCategory = (categoryId) => {
-//   if (!categoryId || categoryId === "All") {
-//     return SIZE_CONFIG;
-//   }
-
-//   return SIZE_CONFIG.filter((size) =>
-//     size.categories.includes(categoryId)
-//   );
-// };
-
-// /* ================= GET IMAGES BY SIZE ================= */
-
-// export const getImagesBySize = async (sizeMm) => {
-//   try {
-//     // This works in Vite
-//     const images = import.meta.glob(
-//       `/public/tiles/${sizeMm}/*.{jpg,jpeg,png,webp}`,
-//       { eager: true }
-//     );
-
-//     return Object.values(images).map((mod) => mod.default);
-//   } catch (err) {
-//     console.warn("No images found for size:", sizeMm);
-//     return [];
-//   }
-// };
-
-// /* ================= GENERATE TILE DATA ================= */
-
-// export const generateTiles = async ({
-//   categoryId,
-//   sizeMm,
-//   series,
-//   finish,
-// }) => {
-//   const sizes = getSizesByCategory(categoryId);
-
-//   const filteredSizes = sizeMm
-//     ? sizes.filter((s) => s.mm === sizeMm)
-//     : sizes;
-
-//   let tiles = [];
-
-//   for (const size of filteredSizes) {
-//     const images = await getImagesBySize(size.mm);
-
-//     images.forEach((img, index) => {
-//       tiles.push({
-//         id: `${size.mm}-${index}`,
-//         image: img,
-//         sizeMm: size.mm,
-//         sizeInch: size.inch,
-//         categoryId,
-//         series,
-//         finish,
-//       });
-//     });
-//   }
-
-//   return tiles;
-// };
-
-
 import { SIZE_CONFIG } from "../config/tileConfig";
 
 /* ================= GET SIZES BY CATEGORY ================= */
@@ -92,12 +25,15 @@ export const getImagesBySize = (sizeMm) => {
   const images = Object.entries(allImages)
     .filter(([path]) => path.includes(`/tiles/${sizeMm}/`))
     .map(([path, module]) => {
-      const fileName = path.split("/").pop().split(".")[0]; // 👈 auto name from file
-      return {
-        image: module.default,
-        name: fileName,
-      };
-    });
+  const fileName = path.split("/").pop().split(".")[0];
+
+  return {
+    image: module.default,
+    name: fileName,
+    finish: getFinishFromFileName(path), // ✅ attach real finish
+  };
+});
+
 
   return images;
 };
@@ -129,11 +65,41 @@ export const generateTiles = ({
         sizeMm: size.mm,
         sizeInch: size.inch,
         categoryId,
-        series,
-        finish,
+        finish: imgObj.finish, 
       });
     });
   });
-
+if (finish && finish !== "All") {
+  tiles = tiles.filter((tile) => tile.finish === finish);
+}
   return tiles;
+};
+
+
+export const getAspectRatioStyle = (mm) => {
+  if (!mm) return {};
+
+  const [w, h] = mm.split("x").map(Number);
+
+  if (!w || !h) return {};
+
+  return {
+    aspectRatio: `${h} / ${w}`,
+  };
+};
+
+/* ================= PARSE FINISH FROM FILE NAME ================= */
+
+const getFinishFromFileName = (filePath) => {
+  const fileName = filePath.split("/").pop().toUpperCase();
+
+  if (fileName.includes("-HL")) return "High Gloss";
+
+  // Future expansion examples:
+  // if (fileName.includes("-MT")) return "Matt";
+  // if (fileName.includes("-CM")) return "Carving Matt";
+  // if (fileName.includes("-DC")) return "Decor";
+  // if (fileName.includes("-SK")) return "Skiner";
+
+  return "Glossy"; // default
 };

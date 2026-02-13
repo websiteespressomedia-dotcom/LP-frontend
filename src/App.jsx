@@ -11,6 +11,7 @@ import SmoothScroll from "./components/common/SmoothScroll";
 import CustomCursor from "./components/common/CustomCursor";
 import Catalogue from "./pages/Catalogue";
 import CatalogueViewerPage from "./components/catalogue/CatalogueViewerPage";
+import TileDetail from "./pages/TileDetail";
 
 const App = () => {
   return (
@@ -23,7 +24,11 @@ const App = () => {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
-          <Route path="/collections" element={<Collections />} />
+          <Route path="/collections">
+            <Route index element={<Collections />} />
+            <Route path=":size/:slug" element={<TileDetail />} />
+          </Route>
+
           <Route path="/catalogue" element={<Catalogue />} />
           <Route path="/catalogue/viewer" element={<CatalogueViewerPage />} />
           <Route path="/contact" element={<Contact />} />

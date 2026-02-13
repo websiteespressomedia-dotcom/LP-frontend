@@ -76,17 +76,41 @@ if (finish && finish !== "All") {
 };
 
 
+
 export const getAspectRatioStyle = (mm) => {
   if (!mm) return {};
 
   const [w, h] = mm.split("x").map(Number);
-
   if (!w || !h) return {};
 
+   // Force perfect square
+  if (w === h) {
+    return {
+      aspectRatio: "1 / 1",
+    };
+  }
+  
+  const isBorder =
+    mm === "10x600" ||
+    mm === "20x600" ||
+    mm === "48x600" ||
+    mm === "62x300";
+
+  if (isBorder) {
+    return {
+      aspectRatio: `${h} / ${w}`,   // keep horizontal
+      maxHeight: "120px",           // 👈 reduce height
+    };
+  }
+
+  // Normal tiles
   return {
-    aspectRatio: `${h} / ${w}`,
+    aspectRatio: `${w} / ${h}`,
   };
 };
+
+
+
 
 /* ================= PARSE FINISH FROM FILE NAME ================= */
 

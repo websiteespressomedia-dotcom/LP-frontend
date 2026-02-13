@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { generateTiles, getAspectRatioStyle } from "../helpers/tileHelper";
 import { MAIN_CATEGORIES, SIZE_CONFIG } from "../config/tileConfig";
+import { Link } from "react-router-dom";
 
 // ---------------- IMAGES ----------------
 import collectionsBg from "../assets/collections/large-format.jpg";
@@ -28,6 +29,19 @@ const Collections = () => {
     if (finish === "All") return baseTiles;
     return baseTiles.filter((t) => t.finish === finish);
   }, [baseTiles, finish]);
+
+  const groupedTiles = useMemo(() => {
+    const groups = {};
+
+    tiles.forEach((tile) => {
+      if (!groups[tile.sizeMm]) {
+        groups[tile.sizeMm] = [];
+      }
+      groups[tile.sizeMm].push(tile);
+    });
+
+    return groups;
+  }, [tiles]);
 
   return (
     <section className="fixed min-h-screen inset-0 overflow-hidden">
@@ -106,13 +120,13 @@ const Collections = () => {
                 key={opt}
                 onClick={() => setFinish(opt)}
                 className={`
-          py-3 rounded-xl text-xs uppercase tracking-wide transition
-          ${
-            finish === opt
-              ? "bg-white text-black shadow-lg"
-              : "bg-black/20 text-white border border-white/20 hover:border-white/40"
-          }
-        `}
+                py-3 rounded-xl text-xs uppercase tracking-wide transition
+                ${
+                  finish === opt
+                    ? "bg-white text-black shadow-lg"
+                    : "bg-black/20 text-white border border-white/20 hover:border-white/40"
+                }
+              `}
               >
                 {opt}
               </button>
@@ -149,30 +163,45 @@ const Collections = () => {
             {tiles.length === 0 ? (
               <p className="text-white/70">No tiles found.</p>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
-                {tiles.map((tile) => (
-                  <div key={tile.id} className="group">
-                    <div
-                      className="relative bg-white shadow-xl hover:shadow-2xl transition-all duration-500"
-                      style={getAspectRatioStyle(tile.sizeMm)}
-                    >
-                      <img
-                        src={tile.image}
-                        alt={tile.name}
-                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                      />
+              Object.entries(
+                tiles.reduce((acc, tile) => {
+                  if (!acc[tile.sizeMm]) acc[tile.sizeMm] = [];
+                  acc[tile.sizeMm].push(tile);
+                  return acc;
+                }, {}),
+              ).map(([size, sizeTiles]) => (
+                <div key={size} className="mb-24">
+                  {/* SIZE TITLE */}
+                  <h2 className="text-white text-xl font-semibold mb-10">
+                    {size} MM
+                  </h2>
 
-                      {/* <div className="absolute top-3 left-3 bg-white/90 px-3 py-1 text-xs font-medium">
-                        {tile.sizeMm}
-                      </div> */}
-                    </div>
+                  {/* NEW GRID FOR THIS SIZE */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-10">
+                    {sizeTiles.map((tile) => (
+                      <Link key={tile.id} to={`/collections/${tile.sizeMm}/${tile.name.toLowerCase().replace(/\s+/g, "-")}`} target="_blank" className="group">
+                        <div
+                          className="relative overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-500 transform-gpu"
+                          style={getAspectRatioStyle(tile.sizeMm)}
+                        >
+                          <img
+                            src={tile.image}
+                            alt={tile.name}
+                            className="absolute inset-0 w-full h-full scale-[101%] object-cover transition-transform duration-700 group-hover:scale-105"
+                          />
+                        </div>
 
-                    <div className="mt-4 text-white">
-                      <h3 className="text-sm font-semibold">{tile.name}</h3>
-                    </div>
+                        <div className="mt-4 text-white flex justify-between">
+                          <h3 className="text-sm font-semibold">{tile.name}</h3>
+                          <h3 className="text-sm text-white/70 font-semibold pr-2">
+                            {tile.sizeMm}
+                          </h3>
+                        </div>
+                      </Link>
+                    ))}
                   </div>
-                ))}
-              </div>
+                </div>
+              ))
             )}
           </div>
         </section>
